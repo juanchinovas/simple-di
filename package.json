@@ -1,0 +1,27 @@
+{
+  "name": "@sunacchi/simple-di",
+  "version": "1.0.0",
+  "description": "Simple dependency injection for simple project",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && jest **/*.spec.js",
+    "testit": "npm run build && jest",
+    "test:coverage": "npm run build && jest **/*.spec.js --coverage"
+  },
+  "keywords": [
+    "di",
+    "dependency injection",
+    "dependency injector",
+    "injector",
+	"javascript",
+	"simple",
+	"simple-di"
+  ],
+  "author": "juanchinovas",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^27.4.1",
+    "jest": "^27.5.1"
+  }
+}
