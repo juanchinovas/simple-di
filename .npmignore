@@ -3,6 +3,8 @@ node_modules
 coverage
 jest.config.js
 dist
-types
+types/test
+types/common.d.ts
 .gitignore
 .npmignore
+*.tgz
