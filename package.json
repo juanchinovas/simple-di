@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && jest **/*.spec.js",
+    "test": "npm run build && jest ./dist/**/*.spec.js",
     "testit": "npm run build && jest",
-    "test:coverage": "npm run build && jest **/*.spec.js --coverage"
+    "test:coverage": "npm run build && jest ./dist/**/*.spec.js --coverage"
   },
   "keywords": [
     "di",
