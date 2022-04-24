@@ -71,18 +71,26 @@ describe("di", () => {
 		});
 	});
 
-	describe("clear", () => {
-		it("returns undefined when not instance registered", () => {
-			class Test {
-				prop: number;
-				constructor() {
-					this.prop = 5;
-				}
-			};
+	describe("clean", () => {
+		class Test {
+			prop: number;
+			constructor() {
+				this.prop = 5;
+			}
+		};
+
+		beforeEach(() => {
 
 			container.register(Test);
-			container.clear();
-			
+		});
+
+		it("removes the instance", () => {
+			container.clean('Test');
+			expect(container.get(Test)).not.toBeDefined();
+		});
+
+		it("clean the container instances", () => {
+			container.clean();
 			expect(container.get(Test)).not.toBeDefined();
 		});
 	});
@@ -131,6 +139,6 @@ describe("di", () => {
 	});
 
 	afterEach(() => {
-		container.clear();
+		container.clean();
 	})
 });

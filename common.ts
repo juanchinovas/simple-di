@@ -39,6 +39,9 @@ export function getReferenceMetadata(name: string): InjectorMetadata {
 export function clearReferences() {
 	references.clear();
 }
+export function removeReference(key: string) {
+	return references.delete(key);
+}
 
 const references: Map<string, InjectorMetadata>  = new Map<string, InjectorMetadata>();
 export function _register(metadata: Partial<InjectorMetadata>) {

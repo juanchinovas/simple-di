@@ -132,6 +132,6 @@ describe("decorator", () => {
 	});
 
 	afterEach(() => {
-		container.clear();
+		container.clean();
 	})
 });

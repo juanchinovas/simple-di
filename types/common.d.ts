@@ -19,5 +19,6 @@ export interface InjectorMetadata {
 }
 export declare function getReferenceMetadata(name: string): InjectorMetadata;
 export declare function clearReferences(): void;
+export declare function removeReference(key: string): boolean;
 export declare function _register(metadata: Partial<InjectorMetadata>): void;
 export {};

@@ -3,3 +3,4 @@ coverage
 test/*.d.ts
 .DS_Store
 dist/test
+*.tgz
