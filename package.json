@@ -1,46 +1,48 @@
 {
   "name": "@sunacchi/simple-di",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Simple dependency injection for simple project",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
   "repository": {
-	  "type": "git",
-	  "directory": "./",
-	  "url": "https://github.com/juanchinovas/simple-di.git"
+    "type": "git",
+    "directory": "./",
+    "url": "https://github.com/juanchinovas/simple-di.git"
   },
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && jest ./lib/**/*.spec.js",
+    "test": "npm run build && jest ./test/*.spec.ts",
     "testit": "npm run build && jest",
-    "test:coverage": "npm run build && jest ./lib/**/*.spec.js --coverage"
+    "test:coverage": "npm run build && jest ./test/*.spec.ts --coverage"
   },
   "keywords": [
     "di",
     "dependency injection",
     "dependency injector",
     "injector",
-	"javascript",
-	"simple",
-	"simple-di"
+    "javascript",
+    "simple",
+    "simple-di"
   ],
   "author": "juanchinovas",
   "license": "ISC",
   "devDependencies": {
-    "@types/jest": "^27.4.1",
-    "jest": "^27.5.1"
+    "@types/jest": "^27.5.1",
+    "jest": "^27.5.1",
+    "ts-jest": "27.1",
+    "typescript": "^4.7.2"
   },
   "publishConfig": {
-	  "access": "public"
+    "access": "public"
   },
   "files": [
-	  "/lib/common.js",
-	  "/lib/container.js",
-	  "/lib/decorators.js",
-	  "/lib/index.js",
-	  "/types/container.d.ts",
-	  "/types/decorators.d.ts",
-	  "/types/index.d.ts"
+    "/lib/common.js",
+    "/lib/container.js",
+    "/lib/decorators.js",
+    "/lib/index.js",
+    "/types/container.d.ts",
+    "/types/decorators.d.ts",
+    "/types/index.d.ts"
   ],
   "exports": {
     ".": {

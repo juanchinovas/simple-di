@@ -16,7 +16,7 @@ export interface IContainer {
 	 * 
 	 * @returns {boolean} done or not
 	 */
-	register<IN>(target: (new (...args: unknown[])=> IN), scope?: InjectorType): boolean;
+	register<IN>(target: (new (...args: any[])=> IN), scope?: InjectorType): boolean;
 	register(name: string, value: any, scope?: InjectorType): boolean;
 	/**
 	 * Return an instances or create a new one
@@ -26,7 +26,7 @@ export interface IContainer {
 	 * @returns {IN|OUT} instance
 	 */
 	get<OUT>(target: string): OUT;
-	get<IN>(target: IN | (new (...args: unknown[]) => IN)): IN;
+	get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
 	/**
 	 * Create a new instance of target and get the dependence params from the container using the dependencies list, if any.
 	 * This function only create new instances but not save the instances in the container.
@@ -36,7 +36,9 @@ export interface IContainer {
 	 * 
 	 * @returns {IN} target instance
 	 */
-	factory<IN>(target: new (...args: unknown[]) => IN, dependencies?: Array<string>): IN;
+
+	factory<IN>(callback: (container: IContainer) => IN): IN;
+	factory<IN>(target: new (...args: any[]) => IN, dependencies?: Array<string>): IN;
 	/**
 	 * Wipe out one or all references from the container.
 	 * 
@@ -49,7 +51,7 @@ export interface IContainer {
 class Container implements IContainer {
 	constructor() {}
 
-	register<IN>(target: (new (...args: unknown[])=> IN), scope?: InjectorType): boolean;
+	register<IN>(target: (new (...args: any[])=> IN), scope?: InjectorType): boolean;
 	register(name: string, value: any, scope?: InjectorType): boolean
 	register(name: unknown, value: any, scope: InjectorType = InjectorType.transient): boolean {
 		if (name && typeof name === "string") {
@@ -81,7 +83,7 @@ class Container implements IContainer {
 	}
 
 	get<OUT>(target: string): OUT;
-	get<IN>(target: IN | (new (...args: unknown[]) => IN)): IN;
+	get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
 	get(target: unknown) {
 		if (!target) {
 			throw new Error("The key shouldn't be null or undefined");
@@ -103,13 +105,19 @@ class Container implements IContainer {
 		}
 	}
 
-	factory<IN>(target: new (...args: unknown[]) => IN, dependencies?: Array<string>): IN {
+	factory<IN>(callback: (container: IContainer) => IN): IN;
+	factory<IN>(target: new (...args: any[]) => IN, dependencies?: Array<string>): IN;
+	factory<IN>(target: (new (...args: unknown[]) => IN) | ((container: IContainer) => IN), dependencies?: Array<string>): IN {
 		if (!target) {
 			throw new Error("The target instance can't be null or undefined");
 		}
 
-		const dp = dependencies?.map(dependecy => this.get(dependecy)) || [];
-		return new target(...dp);
+		try {
+			return <IN>(target as (container: IContainer) => IN)(this);
+		} catch {
+			const dp = dependencies?.map(dependecy => this.get(dependecy)) || [];
+			return new (target as (new (...args: unknown[]) => IN))(...dp);
+		}
 	}
 
 	clean(key?: string) {

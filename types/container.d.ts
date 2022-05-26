@@ -8,7 +8,7 @@ export interface IContainer {
      *
      * @returns {boolean} done or not
      */
-    register<IN>(target: (new (...args: unknown[]) => IN), scope?: InjectorType): boolean;
+    register<IN>(target: (new (...args: any[]) => IN), scope?: InjectorType): boolean;
     register(name: string, value: any, scope?: InjectorType): boolean;
     /**
      * Return an instances or create a new one
@@ -18,7 +18,7 @@ export interface IContainer {
      * @returns {IN|OUT} instance
      */
     get<OUT>(target: string): OUT;
-    get<IN>(target: IN | (new (...args: unknown[]) => IN)): IN;
+    get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
     /**
      * Create a new instance of target and get the dependence params from the container using the dependencies list, if any.
      * This function only create new instances but not save the instances in the container.
@@ -28,7 +28,8 @@ export interface IContainer {
      *
      * @returns {IN} target instance
      */
-    factory<IN>(target: new (...args: unknown[]) => IN, dependencies?: Array<string>): IN;
+    factory<IN>(callback: (container: IContainer) => IN): IN;
+    factory<IN>(target: new (...args: any[]) => IN, dependencies?: Array<string>): IN;
     /**
      * Wipe out one or all references from the container.
      *

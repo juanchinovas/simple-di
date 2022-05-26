@@ -43,6 +43,10 @@ describe("di", () => {
 		it("should register a class as singleton", () => {
 			expect(container.register(class Test {}, InjectorType.singleton)).toBe(true);
 		});
+	
+		it("should register a class as singleton", () => {
+			expect(container.register(class Test { constructor(public t: string) {}}, InjectorType.singleton)).toBe(true);
+		});
 	});
 
 	describe("get", () => {
@@ -109,7 +113,7 @@ describe("di", () => {
 
 		it("should create instance with it dependencies", () => {
 			class Test {
-				constructor(public dep: string) {}
+				constructor(public dep: string[]) {}
 			};
 
 			container.register("dep", "test");
@@ -135,6 +139,29 @@ describe("di", () => {
 			expect(
 				() => container.factory(null, ["dep"])
 			).toThrowError(new Error("The target instance can't be null or undefined"));
+		});
+
+		it("should create instance from function callback", () => {
+			class Test {
+				constructor(public dep: string) {}
+			};
+
+			expect(container.factory(() => new Test('testing'))).toEqual(expect.objectContaining({
+				dep: 'testing'
+			}));
+		});
+
+		it("should create instance from function callback and call container", () => {
+			class Test {
+				constructor(public dep: string) {}
+			};
+			expect(container.factory((container) => {
+				container.register("dep", "test");
+				const param = container.get<string>('dep');
+				return new Test(param);
+			})).toEqual(expect.objectContaining({
+				dep: 'test'
+			}));
 		});
 	});
 

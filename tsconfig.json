@@ -1,15 +1,15 @@
 {
 	"compilerOptions": {
-		"rootDir": "./",
+		"rootDir": ".",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"target": "ES2017",
 		"module": "CommonJS",
 		"declaration": true,
-		"outDir": "./lib",
-		"declarationDir": "./types"
+		"outDir": "lib",
+		"declarationDir": "types"
 	},
-	"include": ["./*"],
+	"include": ["./*.ts", "./*.spec.ts"],
 	"exclude": [
 		"node_modules",
 		"lib",
