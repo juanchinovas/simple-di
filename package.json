@@ -1,6 +1,6 @@
 {
   "name": "@sunacchi/simple-di",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Simple dependency injection for simple project",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
@@ -22,7 +22,8 @@
     "injector",
     "javascript",
     "simple",
-    "simple-di"
+    "simple-di",
+    "js"
   ],
   "author": "juanchinovas",
   "license": "ISC",
@@ -42,6 +43,7 @@
     "/lib/index.js",
     "/types/container.d.ts",
     "/types/decorators.d.ts",
+    "/types/common.d.ts",
     "/types/index.d.ts"
   ],
   "exports": {
