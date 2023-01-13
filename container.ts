@@ -4,7 +4,8 @@ import {
 	InjectorMetadata,
 	InjectorType,
 	removeReference,
-	_register 
+	_register,
+	_completeClazzConstructorParams
 } from "./common";
 
 export interface IContainer {
@@ -95,7 +96,7 @@ class Container implements IContainer {
 			return metadata.value;
 		}
 		if (metadata?.isClass) {
-			const paramValues = metadata.params.map( param => this.get(param.target));
+			const paramValues = _completeClazzConstructorParams(metadata.paramMap).map( param => param ? this.get(param.target) : undefined);
 			const instance = new metadata.target(...paramValues);
 			metadata.propeties.forEach( prop => {
 				instance[prop.key] = this.get(prop.target);

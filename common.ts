@@ -17,7 +17,7 @@ export interface InjectorMetadata {
 	key: string;
 	name?: string;
 	value?: any;
-	params?: Array<MemberMeta>;
+	paramMap?: Map<number, MemberMeta>;
 	propeties?: Array<MemberMeta>;
 }
 
@@ -39,8 +39,20 @@ export function getReferenceMetadata(name: string): InjectorMetadata {
 export function clearReferences() {
 	references.clear();
 }
+
 export function removeReference(key: string) {
 	return references.delete(key);
+}
+
+export function _completeClazzConstructorParams(paramMap: Map<number, MemberMeta>) {
+	if (!paramMap || !paramMap.size) {
+		return [];
+	}
+
+	const keys = [...paramMap.keys()].sort((p1, p2) => p2 - p1);
+	const _params = Array.from({ length: keys[0] + 1 }, () => undefined);
+
+	return _params.map((param, i) => paramMap.get(i) ?? param);
 }
 
 const references: Map<string, InjectorMetadata>  = new Map<string, InjectorMetadata>();
@@ -58,7 +70,7 @@ export function _register(metadata: Partial<InjectorMetadata>) {
 		target: metadata.target,
 		key: key,
 		name: metadata.name ?? key,
-		params: _concatArray([], metadata.params),
+		paramMap: new Map<number, MemberMeta>(),
 		propeties: _concatArray([], metadata.propeties),
 		value: metadata.value
 	});
@@ -66,6 +78,7 @@ export function _register(metadata: Partial<InjectorMetadata>) {
 
 function _updateReferenceMetadata(previousMetadata: InjectorMetadata, newMetadata: Partial<InjectorMetadata>) {
 	const key = newMetadata.key ?? newMetadata.name;
+
 	references.set(key, {
 		isClass: newMetadata.isClass,
 		scope: newMetadata.scope,
@@ -73,7 +86,7 @@ function _updateReferenceMetadata(previousMetadata: InjectorMetadata, newMetadat
 		key,
 		name: newMetadata.name,
 		value: newMetadata.value,
-		params: _concatArray(newMetadata.params, previousMetadata.params),
+		paramMap: previousMetadata.paramMap,
 		propeties: _concatArray(newMetadata.propeties, previousMetadata.propeties),
 	});
 
@@ -82,11 +95,6 @@ function _updateReferenceMetadata(previousMetadata: InjectorMetadata, newMetadat
 	}
 }
 
-function _concatArray(array1: Array<MemberMeta>, array2: Array<MemberMeta>) {
-	let result = array2 || [];
-	if (array1) {
-		result = [...result, ...array1];
-	}
-
-	return result;
+function _concatArray(...arrays: Array<MemberMeta[]>) {
+	return arrays.flat().filter(arr => arr);
 }

@@ -86,11 +86,11 @@ describe("decorator", () => {
 			}
 		};
 		container.register("injected", { test: "jest"});
-		container.register("config", 5);
+		container.register("config", 6);
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			param: { test: "jest"},
-			prop: 5
+			prop: 6
 		}));
 	});
 
@@ -111,9 +111,8 @@ describe("decorator", () => {
 		class Test {
 			@inject("injected")
 			prop: number;
-			@inject("injected")
-			prop2: number;
 			constructor(
+				@inject("injected") public prop2: number,
 				@inject("ok") public ok: string,
 				@inject("okTest") public okTest: string
 			) {}
@@ -123,11 +122,105 @@ describe("decorator", () => {
 		container.register("okTest", "yes");
 		container.register("ok", "Nope");
 
-		expect(container.get(Test)).toEqual(expect.objectContaining({
+		expect(container.get(Test)).toEqual({
 			prop: 2,
 			prop2: 2,
-			ok: "yes",
-			okTest: "Nope"
+			okTest: "yes",
+			ok: "Nope"
+		});
+	});
+
+	it("should create a class instance with right constructor parameters when using @inject decorator", () => {
+		class Test {
+			@inject("injected")
+			prop: number;
+			constructor(
+				@inject("injected5") public prop2: number,
+				@inject("ok") public ok: string,
+				public okTest: string
+			) {}
+		};
+		container.register("injected", 2);
+		container.register("injected5", 25);
+		container.register("okTest", "yes");
+		container.register("ok", "Nope");
+
+		expect(container.get(Test)).toEqual(expect.objectContaining({
+			prop: 2,
+			prop2: 25,
+			okTest: undefined,
+			ok: "Nope"
+		}));
+	});
+
+	it("should create a class instance with right constructor parameters by position", () => {
+		class Test {
+			@inject("injected")
+			prop: number;
+			constructor(
+				public prop2: number,
+				@inject("ok") public ok: string,
+				public okTest: string
+			) {}
+		};
+		container.register("injected", 2);
+		container.register("injected5", 25);
+		container.register("okTest", "yes");
+		container.register("ok", "Nope");
+
+		expect(container.get(Test)).toEqual(expect.objectContaining({
+			prop: 2,
+			prop2: undefined,
+			okTest: undefined,
+			ok: "Nope"
+		}));
+	});
+
+	it("should create a class instance with right constructor parameters by position #2", () => {
+		class Test {
+			@inject("injected")
+			prop: number;
+			constructor(
+				public prop2: number,
+				@inject("ok") public ok: string,
+				@inject("okTest") public okTest: string
+			) {}
+		};
+		container.register("injected", 2);
+		container.register("injected5", 25);
+		container.register("okTest", "yes");
+		container.register("ok", "Nope");
+
+		expect(container.get(Test)).toEqual(expect.objectContaining({
+			prop: 2,
+			prop2: undefined,
+			okTest: "yes",
+			ok: "Nope"
+		}));
+	});
+
+	it("should create a class instance with right constructor parameters by position #3", () => {
+		class Test {
+			@inject("injected")
+			prop: number;
+			constructor(
+				public prop2: number,
+				@inject("ok") public ok: string,
+				public okTest: string,
+				@inject("okTest") public prop3: string
+			) {}
+		};
+		container.register("injected", 2);
+		container.register("injected5", 25);
+		container.register("okTest", "yes");
+		container.register("ok", "Nope");
+
+		expect(container.get(Test)).toEqual(expect.objectContaining({
+			prop: 2,
+			prop2: undefined,
+			okTest: undefined,
+			prop3: "yes",
+			ok: "Nope"
 		}));
 	});
 

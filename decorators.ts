@@ -9,14 +9,23 @@ export function inject(injectableValueName: string) {
 			injectable(key)(clazz);
 			metadata = getReferenceMetadata(key);
 		}
-		
-		const members = metadata[paramIndex >=0 ? "params": "propeties"];
-		members.push({
-			target: injectableValueName,
-			paramIndex,
-			key: propertyKey
-		});
-		metadata[paramIndex >=0 ? "params": "propeties"] = members;
+
+		const members = metadata[paramIndex >= 0 ? "paramMap" : "propeties"];
+		if (members instanceof Map) {
+			members.set(paramIndex, {
+				target: injectableValueName,
+				paramIndex,
+				key: propertyKey
+			});
+			metadata["paramMap"] = members;
+		} else {
+			members.push({
+				target: injectableValueName,
+				paramIndex,
+				key: propertyKey
+			});
+			metadata["propeties"] = members;
+		}
 	}
 }
 
