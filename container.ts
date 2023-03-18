@@ -1,8 +1,8 @@
 import {
 	clearReferences,
 	getReferenceMetadata,
-	InjectorMetadata,
-	InjectorType,
+	Metadata,
+	MetadataScope,
 	removeReference,
 	_register,
 	_completeClazzConstructorParams
@@ -17,8 +17,9 @@ export interface IContainer {
 	 * 
 	 * @returns {boolean} done or not
 	 */
-	register<IN>(target: (new (...args: any[])=> IN), scope?: InjectorType): boolean;
-	register(name: string, value: any, scope?: InjectorType): boolean;
+	register<IN>(target: (new (...args: any[])=> IN), scope?: MetadataScope): boolean;
+	register(name: string, value: any, scope?: MetadataScope): boolean;
+	register(name: symbol, value: any, scope?: MetadataScope): boolean;
 	/**
 	 * Return an instances or create a new one
 	 *
@@ -27,6 +28,7 @@ export interface IContainer {
 	 * @returns {IN|OUT} instance
 	 */
 	get<OUT>(target: string): OUT;
+	get<OUT>(target: symbol): OUT;
 	get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
 	/**
 	 * Create a new instance of target and get the dependence params from the container using the dependencies list, if any.
@@ -52,16 +54,15 @@ export interface IContainer {
 class Container implements IContainer {
 	constructor() {}
 
-	register<IN>(target: (new (...args: any[])=> IN), scope?: InjectorType): boolean;
-	register(name: string, value: any, scope?: InjectorType): boolean
-	register(name: unknown, value: any, scope: InjectorType = InjectorType.transient): boolean {
-		if (name && typeof name === "string") {
+	register<IN>(target: (new (...args: any[])=> IN), scope?: MetadataScope): boolean;
+	register(name: string, value: any, scope?: MetadataScope): boolean;
+	register(name: symbol, value: any, scope?: MetadataScope): boolean;
+	register(name: unknown, value: any, scope: MetadataScope = MetadataScope.transient): boolean {
+		if (name && (typeof name === "string" || typeof name === "symbol")) {
 			_register({
 				value: value,
-				target: value,
 				key: name,
-				name: value?.name,
-				scope: InjectorType.singleton,
+				scope: MetadataScope.singleton,
 				isClass: false
 			});
 
@@ -84,25 +85,30 @@ class Container implements IContainer {
 	}
 
 	get<OUT>(target: string): OUT;
+	get<OUT>(target: symbol): OUT;
 	get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
 	get(target: unknown) {
 		if (!target) {
 			throw new Error("The key shouldn't be null or undefined");
 		}
 
-		const key = (target as any).name ?? target;
-		let metadata: InjectorMetadata = getReferenceMetadata(key);
-		if (metadata && metadata.value && metadata.scope === InjectorType.singleton) {
-			return metadata.value;
+		const key = (target as (new (...args: any[]) => {})).name ?? target as string;
+		let metadata: Metadata = getReferenceMetadata(key);
+		if (metadata && metadata.value && metadata.scope === MetadataScope.singleton) {
+			return (metadata.value?.deref && metadata.value?.deref?.()) || metadata.value;
 		}
 		if (metadata?.isClass) {
-			const paramValues = _completeClazzConstructorParams(metadata.paramMap).map( param => param ? this.get(param.target) : undefined);
+			const paramValues = _completeClazzConstructorParams(metadata.constructParams).map( param => param ? this.get(param.target) : undefined);
 			const instance = new metadata.target(...paramValues);
-			metadata.propeties.forEach( prop => {
-				instance[prop.key] = this.get(prop.target);
+			metadata.propeties?.forEach( prop => {
+				Reflect.set(instance, prop.key, this.get(prop.target));
 			});
 
-			return (metadata.value = instance);
+			if (metadata.scope === MetadataScope.singleton) {
+				metadata.value = new WeakRef(instance);
+			}
+
+			return instance;
 		}
 	}
 

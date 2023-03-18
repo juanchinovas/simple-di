@@ -1,4 +1,4 @@
-import { InjectorType } from "./common";
+import { MetadataScope } from "./common";
 export interface IContainer {
     /**
      * Register a new references in the container
@@ -8,8 +8,9 @@ export interface IContainer {
      *
      * @returns {boolean} done or not
      */
-    register<IN>(target: (new (...args: any[]) => IN), scope?: InjectorType): boolean;
-    register(name: string, value: any, scope?: InjectorType): boolean;
+    register<IN>(target: (new (...args: any[]) => IN), scope?: MetadataScope): boolean;
+    register(name: string, value: any, scope?: MetadataScope): boolean;
+    register(name: symbol, value: any, scope?: MetadataScope): boolean;
     /**
      * Return an instances or create a new one
      *
@@ -18,6 +19,7 @@ export interface IContainer {
      * @returns {IN|OUT} instance
      */
     get<OUT>(target: string): OUT;
+    get<OUT>(target: symbol): OUT;
     get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
     /**
      * Create a new instance of target and get the dependence params from the container using the dependencies list, if any.

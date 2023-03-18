@@ -1,4 +1,4 @@
-import { getContainer, IContainer, InjectorType } from "..";
+import { getContainer, IContainer, MetadataScope } from "..";
 
 describe("di", () => {
 	let container: IContainer;
@@ -29,11 +29,11 @@ describe("di", () => {
 		});
 	
 		it("should register as singleton", () => {
-			expect(container.register("di", {}, InjectorType.singleton)).toBe(true);
+			expect(container.register("di", {}, MetadataScope.singleton)).toBe(true);
 		});
 	
 		it("should register as transient", () => {
-			expect(container.register("di2", {}, InjectorType.transient)).toBe(true);
+			expect(container.register("di2", {}, MetadataScope.transient)).toBe(true);
 		});
 	
 		it("should register a class", () => {
@@ -41,11 +41,11 @@ describe("di", () => {
 		});
 	
 		it("should register a class as singleton", () => {
-			expect(container.register(class Test {}, InjectorType.singleton)).toBe(true);
+			expect(container.register(class Test {}, MetadataScope.singleton)).toBe(true);
 		});
 	
 		it("should register a class as singleton", () => {
-			expect(container.register(class Test { constructor(public t: string) {}}, InjectorType.singleton)).toBe(true);
+			expect(container.register(class Test { constructor(public t: string) {}}, MetadataScope.singleton)).toBe(true);
 		});
 	});
 

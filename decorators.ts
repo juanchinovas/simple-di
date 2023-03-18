@@ -1,35 +1,79 @@
-import { _register, InjectorType, getReferenceMetadata } from "./common";
+import { _register, MetadataScope, getReferenceMetadata, Metadata } from "./common";
+import { MemberMeta } from "./metadata";
 
-export function inject(injectableValueName: string) {
+/**
+ * Inject the indicated instance or value to the property or param in the class.
+ * 
+ * @param { (string | symbol | new (...args: unknown[]) => {}) } injectableTarget
+ * 
+ * @returns {(target: any, propertyKey: string, paramIndex?: number) => void}
+ */
+export function inject(injectableTarget: string): (target: any, propertyKey: string, paramIndex?: number) => void;
+export function inject(injectableTarget: symbol): (target: any, propertyKey: string, paramIndex?: number) => void;
+export function inject(injectableTarget: (new (...args: unknown[]) => {})): (target: any, propertyKey: string, paramIndex?: number) => void;
+export function inject(injectableTarget: string |  symbol | (new (...args: unknown[]) => {})) {
 	return (target: any, propertyKey: string, paramIndex?: number) => {
-		const clazz = (Number.isInteger(paramIndex) && target) || target.constructor;
-		const key = clazz.name;
-		let metadata = getReferenceMetadata(key);
+		const clazz = (!propertyKey && Number.isInteger(paramIndex) && target) || target.constructor;
+		let metadata = getReferenceMetadata(clazz);
 		if (!metadata) {
-			injectable(key)(clazz);
-			metadata = getReferenceMetadata(key);
+			injectable()(clazz);
+			metadata = getReferenceMetadata(clazz);
 		}
 
-		const members = metadata[paramIndex >= 0 ? "paramMap" : "propeties"];
-		if (members instanceof Map) {
-			members.set(paramIndex, {
-				target: injectableValueName,
-				paramIndex,
-				key: propertyKey
+		const injectTarget = typeof injectableTarget === "string"
+			? injectableTarget : typeof injectableTarget === "symbol" 
+			? injectableTarget : injectableTarget.name;
+		
+		// decorator in method's param
+		if (propertyKey && paramIndex >= 0) {
+			_register({
+				target: clazz,
+				methods: new Map<string, MemberMeta[]>([
+					[
+						propertyKey,
+						[
+							{
+								target: injectTarget,
+								paramIndex,
+								key: propertyKey
+							}
+						]
+					]
+				])
 			});
-			metadata["paramMap"] = members;
-		} else {
-			members.push({
-				target: injectableValueName,
-				paramIndex,
-				key: propertyKey
+		}
+
+		// decorator in construct's param
+		if (!propertyKey && paramIndex >= 0) {
+			_register({
+				target: clazz,
+				constructParams: [
+					{
+						target: injectTarget,
+						paramIndex,
+						key: propertyKey
+					}
+				]
 			});
-			metadata["propeties"] = members;
+		}
+
+		// decorator in class props
+		if (propertyKey && paramIndex === undefined) {
+			_register({
+				target: clazz,
+				propeties: [
+					{
+						target: injectTarget,
+						paramIndex,
+						key: propertyKey
+					}
+				]
+			});
 		}
 	}
 }
 
-export function injectable(name?: string) {
+export function injectable(name?: string | symbol) {
 	return (target: any) => {
 		_register({
 			target,
@@ -41,11 +85,11 @@ export function injectable(name?: string) {
 	}
 }
 
-export function singleton(name?: string) {
+export function singleton(name?: string | symbol) {
 	return (target: any) => {
 		_register({
 			target,
-			scope: InjectorType.singleton,
+			scope: MetadataScope.singleton,
 			key: name,
 			isClass: true,
 			name: target.name

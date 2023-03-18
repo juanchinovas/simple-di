@@ -20,14 +20,14 @@ describe("decorator", () => {
 
 	it("should register the class with key name", () => {
 		@injectable("suppa")
-		class Test {
+		class TestKey {
 			prop: number;
 			constructor() {
 				this.prop = 5;
 			}
 		};
 
-		expect(container.get<Test>("suppa").prop).not.toStrictEqual(container.get<Test>("suppa"));
+		expect(container.get<TestKey>("suppa").prop).not.toStrictEqual(container.get<TestKey>("suppa"));
 	});
 
 	it("should register the class with singleton scope", () => {
@@ -74,6 +74,23 @@ describe("decorator", () => {
 
 	});
 
+	it("should return an class instance by symbol", () => {
+		const singletonSymbol = Symbol("Singleton");
+
+		@singleton(singletonSymbol)
+		class TestSingle {
+			@inject("injected")
+			prop: number;
+			constructor() {}
+		};
+		container.register("injected", 2);
+
+		expect(container.get(singletonSymbol)).toEqual(expect.objectContaining({
+			prop: 2
+		}));
+
+	});
+
 	it("should register the class with dependencies and create it", () => {
 		@singleton()
 		class Test {
@@ -107,7 +124,7 @@ describe("decorator", () => {
 		}));
 	});
 
-	it("should register a class when it only use @inject decorator", () => {
+	it("should register a class when it only use @inject decorator multiple constructor params", () => {
 		class Test {
 			@inject("injected")
 			prop: number;
@@ -211,6 +228,32 @@ describe("decorator", () => {
 			) {}
 		};
 		container.register("injected", 2);
+		container.register("injected5", 25);
+		container.register("okTest", "yes");
+		container.register("ok", "Nope");
+
+		expect(container.get(Test)).toEqual(expect.objectContaining({
+			prop: 2,
+			prop2: undefined,
+			okTest: undefined,
+			prop3: "yes",
+			ok: "Nope"
+		}));
+	});
+
+	it("should create a class instance with right constructor parameters by position #3 using symbol", () => {
+		const injSymbol =  Symbol("Test");
+		class Test {
+			@inject(injSymbol)
+			prop: number;
+			constructor(
+				public prop2: number,
+				@inject("ok") public ok: string,
+				public okTest: string,
+				@inject("okTest") public prop3: string
+			) {}
+		};
+		container.register(injSymbol, 2);
 		container.register("injected5", 25);
 		container.register("okTest", "yes");
 		container.register("ok", "Nope");

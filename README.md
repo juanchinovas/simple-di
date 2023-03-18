@@ -5,7 +5,7 @@ Yet another Simple dependency injection module for small, personal JS project.
 > npm install @sunacchi/simple-di
 
 ```typescript
-export { inject, injectable, singleton, InjectorType, IContainer, getContainer } from "@sunacchi/simple-di";
+export { inject, injectable, singleton, MetadataScope, IContainer, getContainer } from "@sunacchi/simple-di";
 ```
 
 ## Using `@decorator`
@@ -44,8 +44,8 @@ export interface IContainer {
      *
      * @returns {boolean} done or not
      */
-    register<IN>(target: (new (...args: any[]) => IN), scope?: InjectorType): boolean;
-    register(name: string, value: any, scope?: InjectorType): boolean;
+    register<IN>(target: (new (...args: any[]) => IN), scope?: MetadataScope): boolean;
+    register(name: string, value: any, scope?: MetadataScope): boolean;
     /**
      * Return an instances or create a new one
      *
