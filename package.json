@@ -1,6 +1,6 @@
 {
   "name": "@sunacchi/simple-di",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Simple dependency injection for simple project",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
@@ -14,7 +14,7 @@
     "test": "npm run build && jest ./test/*.spec.ts",
     "test2": "npm run build && jest",
     "test:coverage": "npm run build && jest ./test/*.spec.ts --coverage",
-    "publish:pack": "npm run build && npm run test:coverage && npm publish"
+    "publish:pack": "npm run build && npm run test && npm publish"
   },
   "keywords": [
     "di",
@@ -39,13 +39,15 @@
   },
   "files": [
     "/lib/common.js",
+    "/lib/service/service.js",
     "/lib/container.js",
     "/lib/decorators.js",
     "/lib/index.js",
     "/types/container.d.ts",
     "/types/decorators.d.ts",
     "/types/common.d.ts",
-    "/types/index.d.ts"
+    "/types/index.d.ts",
+    "/types/service/service.d.ts"
   ],
   "exports": {
     ".": {

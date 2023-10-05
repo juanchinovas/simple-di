@@ -28,17 +28,30 @@ export interface ControllerOption {
 const controllerMap = new Map<string, ControllerType>();
 getContainer().register("service::controllers::map", controllerMap, MetadataScope.singleton);
 
+export function controller(): (target: new (...args: any[]) => any) => void;
+export function controller(name: string | ControllerOption): (target: new (...args: any[]) => any) => void;
+export function controller(name?: string, options?: ControllerOption): (target: new (...args: any[]) => any) => void;
 export function controller(name?: string, options?: ControllerOption) {
 	return (target: new (...args: any[]) => any) => {
-		const controllerName = name ?? target.name;
+		let controllerName = target.name;
+
+		if (typeof name === "string") {
+			controllerName = name;
+		} else {
+			options = name as ControllerOption;
+		}
+
 		if (controllerMap.has(target.name)) {
 			const controllerInfo = controllerMap.get(target.name);
 			controllerMap.set(controllerName, {
 				controller: target,
-				options: controllerInfo?.options ? Object.assign({}, controllerInfo.options, options) : options,
+				options: Object.assign({}, controllerInfo.options, options),
 				routes: controllerInfo?.routes
 			});
-			controllerMap.delete(target.name);
+
+			if (controllerName !== target.name) {
+				controllerMap.delete(target.name);
+			}
 		} else {
 			controllerMap.set(controllerName, {
 				controller: target,

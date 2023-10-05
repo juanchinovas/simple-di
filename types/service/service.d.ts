@@ -18,6 +18,8 @@ export interface ControllerOption {
     validator?: string;
     version?: string;
 }
+export declare function controller(): (target: new (...args: any[]) => any) => void;
+export declare function controller(name: string | ControllerOption): (target: new (...args: any[]) => any) => void;
 export declare function controller(name?: string, options?: ControllerOption): (target: new (...args: any[]) => any) => void;
 export declare function get(path?: string, options?: RouteOption): (target: any, name: string, descriptor: PropertyDescriptor) => void;
 export declare function post(path?: string, options?: RouteOption): (target: any, name: string, descriptor: PropertyDescriptor) => void;

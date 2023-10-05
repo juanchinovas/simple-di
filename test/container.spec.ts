@@ -13,7 +13,7 @@ describe("di", () => {
 		});
 	
 		it("should not register a value with null name", () => {
-			expect(container.register(null, 5)).toBe(false);
+			expect(container.register(null as any, 5)).toBe(false);
 		});
 	
 		it("should not register a value with empty name", () => {
@@ -137,7 +137,7 @@ describe("di", () => {
 
 		it("should throw when dependencies are null", () => {
 			expect(
-				() => container.factory(null, ["dep"])
+				() => container.factory(null as any, ["dep"])
 			).toThrowError(new Error("The target instance can't be null or undefined"));
 		});
 

@@ -41,7 +41,7 @@ export function addMetadata(
                 scope:              metadata.scope ?? MetadataScope.transient,
                 target:             metadata.target,
                 key:                metadata.key,
-                name:               key as string || metadata.name,
+                name:               metadata.name,
                 value:              metadata.value,
                 constructParams:    [],
                 propeties:          [],
@@ -49,6 +49,7 @@ export function addMetadata(
             };
             weakMapRefs.set(keyConverted, existing);
             mapRefs.set(`@${keyConverted.name}`, keyConverted);
+
             if (metadata.key) {
                 mapRefs.set(metadata.key, keyConverted);
             }
@@ -123,7 +124,7 @@ export function deleteMetadata(
     if (!done) {
         const mapKey = `@${key as string}`;
         const mappedKey = mapRefs.get(mapKey);
-        done = (mappedKey && (weakMapRefs.delete(mappedKey as object), mapRefs.delete(mapKey))) || false;
+        done = (mappedKey && (weakMapRefs.delete(mappedKey as object), mapRefs.delete(mapKey)));
     }
 
     return done;

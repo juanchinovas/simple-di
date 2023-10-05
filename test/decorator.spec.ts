@@ -147,26 +147,30 @@ describe("decorator", () => {
 		});
 	});
 
-	it("should create a class instance with right constructor parameters when using @inject decorator", () => {
+	it("should create a class instance with right constructor parameters when using @inject decorator with different inject key", () => {
+		class InjectKey { };
+
 		class Test {
 			@inject("injected")
 			prop: number;
 			constructor(
 				@inject("injected5") public prop2: number,
-				@inject("ok") public ok: string,
+				@inject(InjectKey) public ok: InjectKey,
 				public okTest: string
 			) {}
+
+			test(@inject('pTest') pTest: string) {}
 		};
 		container.register("injected", 2);
 		container.register("injected5", 25);
 		container.register("okTest", "yes");
-		container.register("ok", "Nope");
+		container.register(InjectKey);
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			prop: 2,
 			prop2: 25,
 			okTest: undefined,
-			ok: "Nope"
+			ok: new InjectKey()
 		}));
 	});
 
@@ -264,6 +268,31 @@ describe("decorator", () => {
 			okTest: undefined,
 			prop3: "yes",
 			ok: "Nope"
+		}));
+	});
+	
+	it("should create a class instance with right constructor parameters when using @inject decorator", () => {
+		const symbolKey = Symbol();
+
+		class Test {
+			@inject("injected")
+			prop: number;
+			constructor(
+				@inject("injected5") public prop2: number,
+				@inject(symbolKey) public ok: string,
+				public okTest: string
+			) {}
+		};
+		container.register("injected", 2);
+		container.register("injected5", 25);
+		container.register("okTest", "yes");
+		container.register(symbolKey, "Aha");
+
+		expect(container.get(Test)).toEqual(expect.objectContaining({
+			prop: 2,
+			prop2: 25,
+			okTest: undefined,
+			ok: "Aha"
 		}));
 	});
 

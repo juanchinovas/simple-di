@@ -75,7 +75,7 @@ class Container implements IContainer {
 				target: target,
 				scope: scope,
 				isClass: true,
-				name: target.name,
+				name: target.name
 			});
 
 			return true;
