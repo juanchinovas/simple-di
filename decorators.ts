@@ -8,11 +8,11 @@ import { MemberMeta } from "./metadata";
  * 
  * @returns {(target: any, propertyKey: string, paramIndex?: number) => void}
  */
-export function inject(injectableTarget: string): (target: any, propertyKey: string, paramIndex?: number) => void;
-export function inject(injectableTarget: symbol): (target: any, propertyKey: string, paramIndex?: number) => void;
+export function inject(injectableTarget: string): (target: any, propertyKey?: string, paramIndex?: number) => void;
+export function inject(injectableTarget: symbol): (target: any, propertyKey?: string, paramIndex?: number) => void;
 export function inject(injectableTarget: (new (...args: unknown[]) => {})): (target: any, propertyKey: string, paramIndex?: number) => void;
 export function inject(injectableTarget: string |  symbol | (new (...args: unknown[]) => {})) {
-	return (target: any, propertyKey: string, paramIndex?: number) => {
+	return (target: any, propertyKey?: string, paramIndex?: number) => {
 		const clazz = (!propertyKey && Number.isInteger(paramIndex) && target) || target.constructor;
 		let metadata = getReferenceMetadata(clazz);
 		if (!metadata) {

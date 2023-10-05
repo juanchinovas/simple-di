@@ -7,3 +7,5 @@ export {
 	injectable,
 	singleton
 } from "./decorators";
+
+export * from "./service/service";

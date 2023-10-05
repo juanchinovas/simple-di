@@ -1,6 +1,6 @@
 {
   "name": "@sunacchi/simple-di",
-  "version": "1.2.3",
+  "version": "1.2.5",
   "description": "Simple dependency injection for simple project",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
@@ -42,10 +42,12 @@
     "/lib/service/service.js",
     "/lib/container.js",
     "/lib/decorators.js",
+    "/lib/metadata.js",
     "/lib/index.js",
     "/types/container.d.ts",
     "/types/decorators.d.ts",
     "/types/common.d.ts",
+    "/types/metadata.d.ts",
     "/types/index.d.ts",
     "/types/service/service.d.ts"
   ],
