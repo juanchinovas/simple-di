@@ -188,3 +188,13 @@ function __register(targetCtlName: string, info: RouteType) {
 	controllerInfo = controllerInfo ?? controllerMap.get(targetCtlName);
 	controllerInfo.routes.set(`${info.method} ${info.path}`, info);
 }
+
+export function loadControllers(callbackFn?: (mappedControllers: Map<string, ControllerType>) => void) {
+	const controllerMap = getContainer().get<Map<string, ControllerType>>("service::controllers::map");
+
+	if (callbackFn) {
+		return callbackFn(controllerMap);
+	}
+
+	return controllerMap;
+}
