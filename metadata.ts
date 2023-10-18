@@ -62,16 +62,19 @@ export function addMetadata(
     if (typeof key === 'symbol' && mapRefs.has(`@${metadata.name}`)) {
         const stringKey = `@${metadata.name}`;
         metadata = mergeMetadata(readMetadata(stringKey), metadata);
-        weakMapRefs.set(metadata.target, metadata);
-        mapRefs.set(key as string | symbol, metadata.target);
         deleteMetadata(stringKey);
-        return;
     }
 
     if (typeof key === 'string' && mapRefs.has(`@${key}`)) {
         const stringKey = `@${key}`;
         metadata = mergeMetadata(readMetadata(stringKey) as Metadata, metadata);
-        weakMapRefs.set(metadata.target, metadata);
+        deleteMetadata(stringKey);
+    }
+
+    if (typeof key === 'string' && mapRefs.has(`@${metadata.name}`)) {
+        const stringKey = `@${metadata.name}`;
+        metadata = mergeMetadata(readMetadata(stringKey) as Metadata, metadata);
+        deleteMetadata(stringKey);
     }
 
     mapRefs.set(key as string | symbol, metadata);
@@ -93,6 +96,7 @@ export function readMetadata<T>(
     }
 
     let ref = mapRefs.get(key as string | symbol);
+
     if (weakMapRefs.has(ref as object)) {
         ref = weakMapRefs.get(ref as object);
     }

@@ -30,3 +30,4 @@ export declare function head(path?: string, options?: RouteOption): (target: any
 export declare function option(path?: string, options?: RouteOption): (target: any, name: string, descriptor: PropertyDescriptor) => void;
 export declare function trace(path?: string, options?: RouteOption): (target: any, name: string, descriptor: PropertyDescriptor) => void;
 export declare function connect(path?: string, options?: RouteOption): (target: any, name: string, descriptor: PropertyDescriptor) => void;
+export declare function loadControllers(callbackFn?: (mappedControllers: Map<string, ControllerType>) => void): void | Map<string, ControllerType>;

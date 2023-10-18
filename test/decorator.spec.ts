@@ -54,7 +54,7 @@ describe("decorator", () => {
 		};
 		container.register("injected", { test: "jest"});
 
-		expect(container.get(Test)).toEqual(expect.objectContaining({
+		expect(container.get("Reference")).toEqual(expect.objectContaining({
 			param: { test: "jest"}
 		}));
 	});

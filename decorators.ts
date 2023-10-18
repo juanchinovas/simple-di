@@ -1,4 +1,4 @@
-import { _register, MetadataScope, getReferenceMetadata, Metadata } from "./common";
+import { _register, MetadataScope, getReferenceMetadata } from "./common";
 import { MemberMeta } from "./metadata";
 
 /**
