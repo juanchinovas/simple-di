@@ -102,6 +102,11 @@ export function readMetadata<T>(
     }
 
     if (!ref && typeof key === 'string') {
+        const mapKey = mapRefs.get(`${key as string}`) as object;
+        ref = weakMapRefs.get(mapKey);
+    }
+
+    if (!ref && mapRefs.has(`@${key as string}`)) {
         const mapKey = mapRefs.get(`@${key as string}`) as object;
         ref = weakMapRefs.get(mapKey);
     }

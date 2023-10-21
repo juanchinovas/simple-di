@@ -93,10 +93,15 @@ class Container implements IContainer {
 		}
 
 		const key = (target as (new (...args: any[]) => {})).name ?? target as string;
-		let metadata: Metadata = getReferenceMetadata(key);
+		let metadata: Metadata = getReferenceMetadata(key);		
+
 		if (metadata && metadata.value && metadata.scope === MetadataScope.singleton) {
-			return (metadata.value?.deref && metadata.value?.deref?.()) || metadata.value;
+			const reference = (metadata.value?.deref && metadata.value?.deref?.()) || metadata.value;
+			if (reference && !(reference instanceof WeakRef)) {
+				return reference;
+			}
 		}
+
 		if (metadata?.isClass) {
 			const paramValues = _completeClazzConstructorParams(metadata.constructParams).map( param => param ? this.get(param.target) : undefined);
 			const instance = new metadata.target(...paramValues);

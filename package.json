@@ -1,6 +1,6 @@
 {
   "name": "@sunacchi/simple-di",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Simple dependency injection for simple project",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
