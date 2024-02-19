@@ -61,6 +61,7 @@ describe('Service', () => {
         expect(loadController('/validation-api')).toEqual({
                 controller: ControllerTestApiWithValidatorClass,
                 options: expect.objectContaining({validator: 'validator'}),
+                path: '/validation-api',
                 routes: new Map ([
                     ["GET /", expect.objectContaining({
                         fnName: "getAction",
@@ -82,6 +83,7 @@ describe('Service', () => {
         expect(loadController('/test-v1-api')).toEqual({
             controller: ControllerTestApiWithV1Class,
             options: expect.objectContaining({version: 'v1'}),
+            path: '/test-v1-api',
             routes: new Map ([
                 ["GET /oh", expect.objectContaining({
                     fnName: "getAction",
@@ -119,6 +121,7 @@ describe('Service', () => {
         expect(loadController("ControllerTestApiWithClass")).toEqual({
                 controller: ControllerTestApiWithClass,
                 options: expect.objectContaining({version: 'v1'}),
+                path: "/",
                 routes: new Map ([
                     ["GET /", expect.objectContaining({
                         fnName: "getAction",
@@ -205,6 +208,7 @@ describe('Service', () => {
         expect(loadControllers()).toEqual(expect.arrayContaining([{
             controller: ControllerTestApiWithClass,
             options: expect.objectContaining({version: 'v1'}),
+            path: "/",
             routes: new Map ([
                 ["GET /", expect.objectContaining({
                     fnName: "getAction",

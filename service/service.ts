@@ -11,7 +11,8 @@ export interface RouteType {
 export interface ControllerType {
 	controller: new (...args: any[]) => any,
 	options?: ControllerOption;
-	routes: Map<string, RouteType>
+	routes: Map<string, RouteType>,
+	path: string
 };
 
 export interface RouteOption {
@@ -23,20 +24,21 @@ export interface ControllerOption {
 	version?: string
 };
 
-const mappedControllers = new Map<string | symbol, new (...args: any[]) => any>();
+const mappedControllers = new Map<string, new (...args: any[]) => any>();
 
 export function controller(): (target: any, _?: ClassDecoratorContext) => void;
-export function controller(name: string  | symbol | ControllerOption): (target: any, _?: ClassDecoratorContext) => void;
-export function controller(name?: string | symbol, options?: ControllerOption): (target: any, _?: ClassDecoratorContext) => void;
-export function controller(name?: string | symbol, options?: ControllerOption) {
+export function controller(name: string | ControllerOption): (target: any, _?: ClassDecoratorContext) => void;
+export function controller(name?: string, options?: ControllerOption): (target: any, _?: ClassDecoratorContext) => void;
+export function controller(name?: string, options?: ControllerOption) {
 	return (target: any, _?: ClassDecoratorContext) => {
-		const isKeyPrimity = ["string", "symbol"].includes(getObjectType(name));
+		const isKeyPrimity = ["string"].includes(getObjectType(name));
 		const key = isKeyPrimity ? name : target.name;
 
 		defineMetadata(
 			BindedKey.instanceScope,
 			{
 				key,
+				path: isKeyPrimity ? name : "/", 
 				isClass: true,
 				options: isKeyPrimity ? options : name,
 				scope: MetadataScope.transient
@@ -202,7 +204,7 @@ export function loadControllers(): ControllerType[] {
 	return controllersInfo;
 }
 
-export function loadController(key: string | symbol): ControllerType {
+export function loadController(key: string): ControllerType {
 	const target = mappedControllers.get(key);
 	
 	const metadata = getDefineMetadata(BindedKey.instanceScope, target) as any;
@@ -214,6 +216,7 @@ export function loadController(key: string | symbol): ControllerType {
 	return ({
 		options: metadata.options as ControllerOption,
 		routes: (pathMetadata as RouteType[] ?? []).reduce((map, meta) => (map.set(`${meta.method} ${meta.path}`, meta), map), new Map<string, RouteType>()),
-		controller: target
+		controller: target,
+		path: metadata.path
 	}) as ControllerType;
 }
