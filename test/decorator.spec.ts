@@ -1,4 +1,4 @@
-import { getContainer, IContainer, inject, injectable, singleton } from "..";
+import { getContainer, IContainer, injectable, singleton, inject } from "../index";
 
 describe("decorator", () => {
 	let container: IContainer;
@@ -15,7 +15,7 @@ describe("decorator", () => {
 			}
 		};
 
-		expect(container.get<Test>("Test").prop).not.toStrictEqual(container.get<Test>("Test"));
+		expect(container.get("Test") === container.get(Test)).toBeFalsy();
 	});
 
 	it("should register the class with key name", () => {
@@ -27,7 +27,9 @@ describe("decorator", () => {
 			}
 		};
 
-		expect(container.get<TestKey>("suppa").prop).not.toStrictEqual(container.get<TestKey>("suppa"));
+		expect(container.get<TestKey>("suppa")).toMatchObject({
+			prop: 5
+		});
 	});
 
 	it("should register the class with singleton scope", () => {
@@ -111,7 +113,7 @@ describe("decorator", () => {
 		}));
 	});
 
-	it("should register a class when it only use @inject decorator", () => {
+	it("should throw when a class is not injectable even if use @inject decorator", () => {
 		class Test {
 			@inject("injected")
 			prop: number;
@@ -119,12 +121,11 @@ describe("decorator", () => {
 		};
 		container.register("injected", 2);
 
-		expect(container.get(Test)).toEqual(expect.objectContaining({
-			prop: 2
-		}));
+		expect(() => container.get(Test)).toThrow("Class is not injectable");
 	});
 
 	it("should register a class when it only use @inject decorator multiple constructor params", () => {
+		@injectable()
 		class Test {
 			@inject("injected")
 			prop: number;
@@ -134,7 +135,6 @@ describe("decorator", () => {
 				@inject("okTest") public okTest: string
 			) {}
 		};
-		container.register("injected", 2);
 		container.register("injected", 2);
 		container.register("okTest", "yes");
 		container.register("ok", "Nope");
@@ -147,34 +147,21 @@ describe("decorator", () => {
 		});
 	});
 
-	it("should create a class instance with right constructor parameters when using @inject decorator with different inject key", () => {
-		class InjectKey { };
+	it("should throw when use @inject decorator in class method", () => {
+		expect(() => {
+			@injectable()
+			class Test {
+				@inject("injected")
+				prop: number;
+				constructor() {}
 
-		class Test {
-			@inject("injected")
-			prop: number;
-			constructor(
-				@inject("injected5") public prop2: number,
-				@inject(InjectKey) public ok: InjectKey,
-				public okTest: string
-			) {}
-
-			test(@inject('pTest') pTest: string) {}
-		};
-		container.register("injected", 2);
-		container.register("injected5", 25);
-		container.register("okTest", "yes");
-		container.register(InjectKey);
-
-		expect(container.get(Test)).toEqual(expect.objectContaining({
-			prop: 2,
-			prop2: 25,
-			okTest: undefined,
-			ok: new InjectKey()
-		}));
+				test(@inject('pTest') pTest: string) {}
+			}
+		}).toThrow("Unsupported");
 	});
 
 	it("should create a class instance with right constructor parameters by position", () => {
+		@injectable()
 		class Test {
 			@inject("injected")
 			prop: number;
@@ -198,6 +185,7 @@ describe("decorator", () => {
 	});
 
 	it("should create a class instance with right constructor parameters by position #2", () => {
+		@injectable()
 		class Test {
 			@inject("injected")
 			prop: number;
@@ -221,6 +209,7 @@ describe("decorator", () => {
 	});
 
 	it("should create a class instance with right constructor parameters by position #3", () => {
+		@injectable()
 		class Test {
 			@inject("injected")
 			prop: number;
@@ -247,6 +236,8 @@ describe("decorator", () => {
 
 	it("should create a class instance with right constructor parameters by position #3 using symbol", () => {
 		const injSymbol =  Symbol("Test");
+
+		@injectable()
 		class Test {
 			@inject(injSymbol)
 			prop: number;
@@ -274,6 +265,7 @@ describe("decorator", () => {
 	it("should create a class instance with right constructor parameters when using @inject decorator", () => {
 		const symbolKey = Symbol();
 
+		@injectable()
 		class Test {
 			@inject("injected")
 			prop: number;
@@ -295,8 +287,20 @@ describe("decorator", () => {
 			ok: "Aha"
 		}));
 	});
+	
+	it("should @inject class object as value to class member", () => {
+		const symbolKey = Symbol();
+		class PropValue {}
 
-	afterEach(() => {
-		container.clean();
-	})
+		@injectable()
+		class Test {
+			@inject(PropValue)
+			prop: PropValue;
+		};
+		container.register(PropValue);
+
+		expect(container.get(Test)).toEqual(expect.objectContaining({
+			prop: {}
+		}));
+	});
 });

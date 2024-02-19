@@ -1,4 +1,4 @@
-import { getContainer, IContainer, MetadataScope } from "..";
+import { getContainer, IContainer, MetadataScope } from "../index";
 
 describe("di", () => {
 	let container: IContainer;
@@ -90,16 +90,17 @@ describe("di", () => {
 
 		it("removes the instance", () => {
 			container.clean('Test');
-			expect(container.get(Test)).not.toBeDefined();
+			expect(() => container.get(Test)).toThrow();
 		});
 
 		it("clean the container instances", () => {
 			container.clean();
-			expect(container.get(Test)).not.toBeDefined();
+			expect(() => container.get(Test)).toThrow();
 		});
 	});
 
 	describe("factory", () => {
+		
 		it("should create instance", () => {
 			class Test {
 				prop: number;
@@ -138,7 +139,7 @@ describe("di", () => {
 		it("should throw when dependencies are null", () => {
 			expect(
 				() => container.factory(null as any, ["dep"])
-			).toThrowError(new Error("The target instance can't be null or undefined"));
+			).toThrow("The target instance can't be null or undefined");
 		});
 
 		it("should create instance from function callback", () => {
@@ -162,6 +163,52 @@ describe("di", () => {
 			})).toEqual(expect.objectContaining({
 				dep: 'test'
 			}));
+		});
+	});
+
+	describe("addProvider", () => {
+		it("should register a provider function", () => {
+			container.addProvider("Test", () => {
+				return "Testing provider"
+			});
+
+			expect(container.get("Test")).toBe("Testing provider");
+		});
+
+		it("should register a provider function with symbol key", () => {
+			const _symbol = Symbol("Test");
+			container.addProvider(_symbol, () => {
+				return "Testing provider"
+			});
+
+			expect(container.get(_symbol)).toBe("Testing provider");
+		});
+
+		it("should register a provider function and read from container a not existing value", () => {
+			const _symbol = Symbol("Test");
+			container.addProvider(_symbol, (container: IContainer) => {
+				return ({
+					prop: container.get("testProp")
+				})
+			});
+
+			expect(container.get(_symbol)).toMatchObject({
+				prop: undefined
+			});
+		});
+
+		it("should register a provider function and read from container an existing value", () => {
+			const _symbol = Symbol("Test");
+			container.register("testProp", 45)
+			container.addProvider(_symbol, (container: IContainer) => {
+				return ({
+					prop: container.get("testProp")
+				})
+			});
+
+			expect(container.get(_symbol)).toMatchObject({
+				prop: 45
+			});
 		});
 	});
 

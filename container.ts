@@ -1,82 +1,49 @@
-import {
-	clearReferences,
-	getReferenceMetadata,
+import { 
 	Metadata,
+	mappedKey,
+	BindedKey,
+	_completeClazzConstructorParams,
+	removeMetadata,
+	MemberMeta,
+	defineMetadata,
+	getAllDefineMetadata } from "./common";
+import {
 	MetadataScope,
-	removeReference,
-	_register,
-	_completeClazzConstructorParams
-} from "./common";
-
-export interface IContainer {
-	/**
-	 * Register a new references in the container
-	 *
-	 * @param target
-	 * @param scope
-	 * 
-	 * @returns {boolean} done or not
-	 */
-	register<IN>(target: (new (...args: any[])=> IN), scope?: MetadataScope): boolean;
-	register(name: string, value: any, scope?: MetadataScope): boolean;
-	register(name: symbol, value: any, scope?: MetadataScope): boolean;
-	/**
-	 * Return an instances or create a new one
-	 *
-	 * @param target
-	 * 
-	 * @returns {IN|OUT} instance
-	 */
-	get<OUT>(target: string): OUT;
-	get<OUT>(target: symbol): OUT;
-	get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
-	/**
-	 * Create a new instance of target and get the dependence params from the container using the dependencies list, if any.
-	 * This function only create new instances but not save the instances in the container.
-	 * 
-	 * @param {new (...args: unknown[]) => IN} target
-	 * @param {Array<string>} dependencies
-	 * 
-	 * @returns {IN} target instance
-	 */
-
-	factory<IN>(callback: (container: IContainer) => IN): IN;
-	factory<IN>(target: new (...args: any[]) => IN, dependencies?: Array<string>): IN;
-	/**
-	 * Wipe out one or all references from the container.
-	 * 
-	 * @param {string} key 
-	 */
-	clean(key?: string): void;
-}
-
+	IContainer
+} from "./index";
 
 class Container implements IContainer {
-	constructor() {}
+	#instances: Map<string | symbol, unknown>;
+	#providers: Map<string | symbol, ((container: IContainer) => void)>;
+
+	constructor() {
+		this.#instances = new Map<string | symbol, unknown>();
+		this.#providers = new Map<string | symbol, ((container: IContainer) => void)>();
+	}
 
 	register<IN>(target: (new (...args: any[])=> IN), scope?: MetadataScope): boolean;
 	register(name: string, value: any, scope?: MetadataScope): boolean;
 	register(name: symbol, value: any, scope?: MetadataScope): boolean;
 	register(name: unknown, value: any, scope: MetadataScope = MetadataScope.transient): boolean {
-		if (name && (typeof name === "string" || typeof name === "symbol")) {
-			_register({
-				value: value,
-				key: name,
-				scope: MetadataScope.singleton,
-				isClass: false
-			});
+		if (name && ["string", "symbol"].includes(typeof name)) {
+			this.#instances.set(name as string | symbol, value)
 
 			return true;
 		}
 
-		const target = name as any;
+		const target = name as (new (...args: any[])=> {});
 		if (!value) {
-			_register({
-				target: target,
-				scope: scope,
-				isClass: true,
-				name: target.name
-			});
+			defineMetadata(
+				"class::instanceScope",
+				{
+					key: target.name,
+					isClass: true,
+					scope
+				},
+				target
+			);
+
+			mappedKey.set(target.name, target);
 
 			return true;
 		}
@@ -92,28 +59,54 @@ class Container implements IContainer {
 			throw new Error("The key shouldn't be null or undefined");
 		}
 
-		const key = (target as (new (...args: any[]) => {})).name ?? target as string;
-		let metadata: Metadata = getReferenceMetadata(key);		
-
-		if (metadata && metadata.value && metadata.scope === MetadataScope.singleton) {
-			const reference = (metadata.value?.deref && metadata.value?.deref?.()) || metadata.value;
-			if (reference && !(reference instanceof WeakRef)) {
-				return reference;
-			}
+		// singleton instance
+		if (this.#instances.has(target as string | symbol)) {
+			return this.#instances.get(target as string | symbol);
 		}
 
-		if (metadata?.isClass) {
-			const paramValues = _completeClazzConstructorParams(metadata.constructParams).map( param => param ? this.get(param.target) : undefined);
-			const instance = new metadata.target(...paramValues);
-			metadata.propeties?.forEach( prop => {
-				Reflect.set(instance, prop.key, this.get(prop.target));
-			});
+		// provider as singleton instance
+		if (this.#providers.has(target as string | symbol)) {
+			const provider = this.#providers.get(target as string | symbol);
+			this.#instances.set(target as string | symbol, provider(this));
 
-			if (metadata.scope === MetadataScope.singleton) {
-				metadata.value = new WeakRef(instance);
+			return this.#instances.get(target as string | symbol);
+		}
+
+		// new instance
+		let metadata: Record<string, MemberMeta[] | Metadata> = null;
+		let clazzTarget = target as (new (...args: any[]) => {});
+		if (target && ["string", "symbol"].includes(typeof target)) {
+			clazzTarget = mappedKey.get(target as string | symbol);
+			if (!clazzTarget) {
+				return undefined;
 			}
 
-			return instance;
+			metadata = getAllDefineMetadata(clazzTarget)
+		} else {
+			metadata = getAllDefineMetadata(target as (new (...args: any[]) => {}));
+		}
+
+		const instanceMetadata = metadata[BindedKey.instanceScope] as Metadata;
+		if (!instanceMetadata) {
+			throw new Error("Class is not injectable");
+		}
+
+		// class
+		if (instanceMetadata.isClass) {
+			const constructorParamsMetadata = _completeClazzConstructorParams(metadata[BindedKey.bindedParams] as MemberMeta[] ?? []);
+			const constructorParamsValues = constructorParamsMetadata.map(param => (param && this.get<unknown>(param.target) || undefined));
+			const targetInstance = new clazzTarget(...constructorParamsValues);
+
+			const propertiesMetadata = _completeClazzConstructorParams(metadata[BindedKey.bindedProperties] as MemberMeta[] ?? []);
+			propertiesMetadata.forEach(prop => {
+				Reflect.set(targetInstance, prop.key, this.get<unknown>(prop.target));
+			});
+
+			if (instanceMetadata.scope === MetadataScope.singleton) {
+				this.#instances.set(instanceMetadata.key, targetInstance);
+			}
+
+			return targetInstance;
 		}
 	}
 
@@ -132,11 +125,21 @@ class Container implements IContainer {
 		}
 	}
 
-	clean(key?: string) {
+	addProvider(name: string | symbol, provider: (container: IContainer) => void): void {
+		this.#providers.set(name, provider);
+	}
+
+	clean(key?: string | symbol) {
 		if (key) {
-			return removeReference(key);
+			this.#instances.delete(key);
+			this.#providers.delete(key);
+			removeMetadata(key);
+			return;
 		}
-		clearReferences();
+
+		this.#instances.clear();
+		this.#providers.clear();
+		removeMetadata();
 	}
 }
 
