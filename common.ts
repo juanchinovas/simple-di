@@ -15,18 +15,19 @@ export interface Metadata {
 	key: string | symbol;
 }
 
+export declare type RegisterType = 
+	{ target: ClassType | unknown, name?: string | symbol, dependencies?: unknown[], scope?: MetadataScope } |
+	{ target?: ClassType | unknown, name: string | symbol, dependencies?: unknown[], scope?: MetadataScope };
+
 export interface IContainer {
 	/**
 	 * Register a new references in the container
 	 *
-	 * @param target
-	 * @param scope
+	 * @param {RegisterType} args
 	 * 
 	 * @returns {boolean} done or not
 	 */
-	register<IN>(target: (new (...args: any[])=> IN), scope?: MetadataScope): boolean;
-	register(name: string, value: any, scope?: MetadataScope): boolean;
-	register(name: symbol, value: any, scope?: MetadataScope): boolean;
+	register(args: RegisterType): boolean;
 	/**
 	 * Return an instances or create a new one
 	 *
@@ -36,7 +37,7 @@ export interface IContainer {
 	 */
 	get<OUT>(target: string): OUT;
 	get<OUT>(target: symbol): OUT;
-	get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
+	get<IN>(target: IN | ClassType<IN>): IN;
 	/**
 	 * Create a new instance of target and get the dependence params from the container using the dependencies list, if any.
 	 * This function only create new instances but not save the instances in the container.
@@ -65,7 +66,7 @@ export interface IContainer {
 	clean(key?: string | symbol): void;
 }
 
-export const mappedKey = new Map<string | symbol, (new (...args: any[]) => {})>();
+export const mappedKey = new Map<string | symbol, ClassType>();
 
 export const enum BindedKey {
 	instanceScope = "class::instanceScope",
@@ -79,11 +80,11 @@ export const enum BindedKey {
  * 
  * @param { string | symbol } name 
  * @param { unknown } value 
- * @param { (new (...args: any[]) => {}) } target
+ * @param { ClassType } target
  * @throws { Error }
  * @returns { void }
  */
-export function defineMetadata(name: string | symbol, value: unknown, target: (new (...args: any[]) => {})): void {
+export function defineMetadata(name: string | symbol, value: unknown, target: ClassType): void {
 	if (!target) {
 		throw new Error("Target should not be null");
 	}
@@ -115,7 +116,7 @@ export function defineMetadata(name: string | symbol, value: unknown, target: (n
  * @param { (new (...args: any[]) => {}) } target 
  * @returns {MemberMeta[] | Metadata}
  */
-export function getDefineMetadata(name: string | symbol, target: (new (...args: any[]) => {})): MemberMeta[] | Metadata {
+export function getDefineMetadata(name: string | symbol, target: ClassType): MemberMeta[] | Metadata {
 	const metadata = target[metadataSymbol];
 
 	return metadata?.[name];
@@ -126,7 +127,7 @@ export function getDefineMetadata(name: string | symbol, target: (new (...args: 
  * @param {(new (...args: any[]) => {})} target 
  * @returns {Record<string, MemberMeta[] | Metadata>} metadata
  */
-export function getAllDefineMetadata(target: (new (...args: any[]) => {})): Record<string, MemberMeta[] | Metadata> {
+export function getAllDefineMetadata(target: ClassType): Record<string, MemberMeta[] | Metadata> {
 	return target?.[metadataSymbol] ?? {};
 }
 
@@ -186,7 +187,7 @@ const metadataSymbol = Symbol("class:metadata");
  * @param {(new (...args: any[]) => {})} target 
  * @returns void
  */
-function defineMetadataOnObject(target: (new (...args: any[]) => {})): void {
+function defineMetadataOnObject(target: ClassType): void {
 	if (target[metadataSymbol]) {
 		return;
 	}
@@ -195,3 +196,5 @@ function defineMetadataOnObject(target: (new (...args: any[]) => {})): void {
 		value: Object.create(null)
 	});
 }
+
+export type ClassType<T = unknown> = (new (...args: any[]) => T);

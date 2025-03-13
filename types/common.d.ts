@@ -12,18 +12,26 @@ export interface Metadata {
     scope: MetadataScope;
     key: string | symbol;
 }
+export declare type RegisterType = {
+    target: ClassType | unknown;
+    name?: string | symbol;
+    dependencies?: unknown[];
+    scope?: MetadataScope;
+} | {
+    target?: ClassType | unknown;
+    name: string | symbol;
+    dependencies?: unknown[];
+    scope?: MetadataScope;
+};
 export interface IContainer {
     /**
      * Register a new references in the container
      *
-     * @param target
-     * @param scope
+     * @param {RegisterType} args
      *
      * @returns {boolean} done or not
      */
-    register<IN>(target: (new (...args: any[]) => IN), scope?: MetadataScope): boolean;
-    register(name: string, value: any, scope?: MetadataScope): boolean;
-    register(name: symbol, value: any, scope?: MetadataScope): boolean;
+    register(args: RegisterType): boolean;
     /**
      * Return an instances or create a new one
      *
@@ -33,7 +41,7 @@ export interface IContainer {
      */
     get<OUT>(target: string): OUT;
     get<OUT>(target: symbol): OUT;
-    get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
+    get<IN>(target: IN | ClassType<IN>): IN;
     /**
      * Create a new instance of target and get the dependence params from the container using the dependencies list, if any.
      * This function only create new instances but not save the instances in the container.
@@ -58,7 +66,7 @@ export interface IContainer {
      */
     clean(key?: string | symbol): void;
 }
-export declare const mappedKey: Map<string | symbol, new (...args: any[]) => {}>;
+export declare const mappedKey: Map<string | symbol, ClassType<unknown>>;
 export declare const enum BindedKey {
     instanceScope = "class::instanceScope",
     bindedParams = "class:construct:binded:params",
@@ -70,24 +78,24 @@ export declare const enum BindedKey {
  *
  * @param { string | symbol } name
  * @param { unknown } value
- * @param { (new (...args: any[]) => {}) } target
+ * @param { ClassType } target
  * @throws { Error }
  * @returns { void }
  */
-export declare function defineMetadata(name: string | symbol, value: unknown, target: (new (...args: any[]) => {})): void;
+export declare function defineMetadata(name: string | symbol, value: unknown, target: ClassType): void;
 /**
  *
  * @param { string | symbol } name
  * @param { (new (...args: any[]) => {}) } target
  * @returns {MemberMeta[] | Metadata}
  */
-export declare function getDefineMetadata(name: string | symbol, target: (new (...args: any[]) => {})): MemberMeta[] | Metadata;
+export declare function getDefineMetadata(name: string | symbol, target: ClassType): MemberMeta[] | Metadata;
 /**
  * Get all defined metadata of the target object and returned
  * @param {(new (...args: any[]) => {})} target
  * @returns {Record<string, MemberMeta[] | Metadata>} metadata
  */
-export declare function getAllDefineMetadata(target: (new (...args: any[]) => {})): Record<string, MemberMeta[] | Metadata>;
+export declare function getAllDefineMetadata(target: ClassType): Record<string, MemberMeta[] | Metadata>;
 /**
  * Get value type
  * @param {unknown} value
@@ -101,3 +109,4 @@ export declare function getObjectType(value: unknown): "object" | "array" | "num
  */
 export declare function _completeClazzConstructorParams(constructParams: MemberMeta[] | MemberMeta): MemberMeta[];
 export declare function removeMetadata(key?: string | symbol): void;
+export type ClassType<T = unknown> = (new (...args: any[]) => T);

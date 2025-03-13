@@ -1,11 +1,11 @@
-import { BindedKey, mappedKey, defineMetadata } from "./common";
+import { BindedKey, mappedKey, defineMetadata, ClassType } from "./common";
 import { MetadataScope } from "./index";
 
 
 export function inject(injectableTarget: string): (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => void;
 export function inject(injectableTarget: symbol): (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => void;
-export function inject(injectableTarget: (new (...args: unknown[]) => {})): (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => void;
-export function inject(injectableTarget: string |  symbol | (new (...args: unknown[]) => {})) {
+export function inject(injectableTarget: ClassType): (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => void;
+export function inject(injectableTarget: string |  symbol | ClassType) {
 	return (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => {
 		const clazz = (!propertyKey && Number.isInteger(paramIndex) && target) || target.constructor;
 		const injectTarget = typeof injectableTarget === "string" || typeof injectableTarget === "symbol" 

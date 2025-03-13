@@ -1,6 +1,7 @@
+import { ClassType } from "./common";
 export declare function inject(injectableTarget: string): (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => void;
 export declare function inject(injectableTarget: symbol): (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => void;
-export declare function inject(injectableTarget: (new (...args: unknown[]) => {})): (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => void;
+export declare function inject(injectableTarget: ClassType): (target: any, propertyKey?: ClassMemberDecoratorContext | string, paramIndex?: number) => void;
 /**
  * Inject indicate an instance scope of a class.
  *

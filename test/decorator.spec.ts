@@ -54,7 +54,7 @@ describe("decorator", () => {
 				this.prop = 5;
 			}
 		};
-		container.register("injected", { test: "jest"});
+		container.register({ name: "injected", target: { test: "jest"}});
 
 		expect(container.get("Reference")).toEqual(expect.objectContaining({
 			param: { test: "jest"}
@@ -68,7 +68,7 @@ describe("decorator", () => {
 			prop: number;
 			constructor() {}
 		};
-		container.register("injected", 2);
+		container.register({ name: "injected", target: 2});
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			prop: 2
@@ -85,7 +85,7 @@ describe("decorator", () => {
 			prop: number;
 			constructor() {}
 		};
-		container.register("injected", 2);
+		container.register({ name: "injected", target: 2});
 
 		expect(container.get(singletonSymbol)).toEqual(expect.objectContaining({
 			prop: 2
@@ -104,8 +104,8 @@ describe("decorator", () => {
 				this.prop = 5;
 			}
 		};
-		container.register("injected", { test: "jest"});
-		container.register("config", 6);
+		container.register({ name: "injected", target: { test: "jest"}});
+		container.register({ name: "config", target: 6});
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			param: { test: "jest"},
@@ -119,7 +119,7 @@ describe("decorator", () => {
 			prop: number;
 			constructor() {}
 		};
-		container.register("injected", 2);
+		container.register({ name: "injected", target: 2});
 
 		expect(() => container.get(Test)).toThrow("Class is not injectable");
 	});
@@ -135,9 +135,9 @@ describe("decorator", () => {
 				@inject("okTest") public okTest: string
 			) {}
 		};
-		container.register("injected", 2);
-		container.register("okTest", "yes");
-		container.register("ok", "Nope");
+		container.register({ name: "injected", target: 2});
+		container.register({ name: "okTest", target: "yes"});
+		container.register({ name: "ok", target: "Nope"});
 
 		expect(container.get(Test)).toEqual({
 			prop: 2,
@@ -171,10 +171,10 @@ describe("decorator", () => {
 				public okTest: string
 			) {}
 		};
-		container.register("injected", 2);
-		container.register("injected5", 25);
-		container.register("okTest", "yes");
-		container.register("ok", "Nope");
+		container.register({ name: "injected", target: 2});
+		container.register({ name: "injected5", target: 25});
+		container.register({ name: "okTest", target: "yes"});
+		container.register({ name: "ok", target: "Nope"});
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			prop: 2,
@@ -195,10 +195,10 @@ describe("decorator", () => {
 				@inject("okTest") public okTest: string
 			) {}
 		};
-		container.register("injected", 2);
-		container.register("injected5", 25);
-		container.register("okTest", "yes");
-		container.register("ok", "Nope");
+		container.register({ name: "injected", target: 2});
+		container.register({ name: "injected5", target: 25});
+		container.register({ name: "okTest", target: "yes"});
+		container.register({ name: "ok", target: "Nope"});
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			prop: 2,
@@ -220,10 +220,10 @@ describe("decorator", () => {
 				@inject("okTest") public prop3: string
 			) {}
 		};
-		container.register("injected", 2);
-		container.register("injected5", 25);
-		container.register("okTest", "yes");
-		container.register("ok", "Nope");
+		container.register({ name: "injected", target: 2});
+		container.register({ name: "injected5", target: 25});
+		container.register({ name: "okTest", target: "yes"});
+		container.register({ name: "ok", target: "Nope"});
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			prop: 2,
@@ -248,10 +248,10 @@ describe("decorator", () => {
 				@inject("okTest") public prop3: string
 			) {}
 		};
-		container.register(injSymbol, 2);
-		container.register("injected5", 25);
-		container.register("okTest", "yes");
-		container.register("ok", "Nope");
+		container.register({ name: injSymbol, target: 2});
+		container.register({ name: "injected5", target: 25});
+		container.register({ name: "okTest", target: "yes"});
+		container.register({ name: "ok", target: "Nope"});
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			prop: 2,
@@ -275,10 +275,10 @@ describe("decorator", () => {
 				public okTest: string
 			) {}
 		};
-		container.register("injected", 2);
-		container.register("injected5", 25);
-		container.register("okTest", "yes");
-		container.register(symbolKey, "Aha");
+		container.register({ name: "injected", target: 2});
+		container.register({ name: "injected5", target: 25});
+		container.register({ name: "okTest", target: "yes"});
+		container.register({ name: symbolKey, target: "Aha"});
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			prop: 2,
@@ -297,7 +297,7 @@ describe("decorator", () => {
 			@inject(PropValue)
 			prop: PropValue;
 		};
-		container.register(PropValue);
+		container.register({target: PropValue});
 
 		expect(container.get(Test)).toEqual(expect.objectContaining({
 			prop: {}

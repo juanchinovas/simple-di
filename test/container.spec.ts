@@ -9,49 +9,58 @@ describe("di", () => {
 
 	describe("register", () => {
 		it("should register a value", () => {
-			expect(container.register("usefullVal", 5)).toBe(true);
+			expect(container.register({name: "usefullVal", target: 5})).toBe(true);
 		});
 	
 		it("should not register a value with null name", () => {
-			expect(container.register(null as any, 5)).toBe(false);
+			expect(container.register({name: null as any, target: 5})).toBe(false);
 		});
 	
 		it("should not register a value with empty name", () => {
-			expect(container.register("", 5)).toBe(false);
+			expect(container.register({name: "", target: 5})).toBe(false);
 		});
 	
-		it("should register a null value", () => {
-			expect(container.register("nullVal", null)).toBe(true);
+		it("should not register a null value", () => {
+			expect(container.register({name: "nullVal", target: null})).toBe(false);
 		});
 	
 		it("should register a function as value", () => {
-			expect(container.register("function", () => console.log("hi!"))).toBe(true);
+			expect(container.register({name: "function", target: () => console.log("hi!")})).toBe(true);
 		});
 	
 		it("should register as singleton", () => {
-			expect(container.register("di", {}, MetadataScope.singleton)).toBe(true);
+			expect(container.register({name: "di", target: {}, scope: MetadataScope.singleton})).toBe(true);
 		});
 	
 		it("should register as transient", () => {
-			expect(container.register("di2", {}, MetadataScope.transient)).toBe(true);
+			expect(container.register({name: "di2", target: {}, scope: MetadataScope.transient})).toBe(true);
 		});
 	
 		it("should register a class", () => {
-			expect(container.register(class Test {})).toBe(true);
+			class Test {}
+			expect(container.register({target: Test})).toBe(true);
 		});
 	
 		it("should register a class as singleton", () => {
-			expect(container.register(class Test {}, MetadataScope.singleton)).toBe(true);
+			class Test {}
+			expect(container.register({target: Test, scope: MetadataScope.singleton})).toBe(true);
 		});
 	
 		it("should register a class as singleton", () => {
-			expect(container.register(class Test { constructor(public t: string) {}}, MetadataScope.singleton)).toBe(true);
+			class Test { constructor(public t: string) {}}
+			expect(container.register({target: Test, scope: MetadataScope.singleton})).toBe(true);
+		});
+	
+		it("should register a class as singleton with dependencies", () => {
+			class Test { constructor(public t: string) {}};
+
+			expect(container.register({target: Test, dependencies: ["V"], scope: MetadataScope.singleton})).toBe(true);
 		});
 	});
 
 	describe("get", () => {
 		it("returns the value 5", () => {
-			container.register("usefullVal", 5)
+			container.register({name: "usefullVal", target: 5})
 			expect(container.get("usefullVal")).toBe(5);
 		});
 
@@ -63,7 +72,7 @@ describe("di", () => {
 				}
 			};
 
-			container.register(Test);
+			container.register({target: Test});
 			const instance = container.get(Test);
 			
 			expect(instance.prop).toEqual(5);
@@ -117,7 +126,7 @@ describe("di", () => {
 				constructor(public dep: string[]) {}
 			};
 
-			container.register("dep", "test");
+			container.register({name: "dep", target: "test"});
 
 			expect(container.factory(Test, ["dep"])).toBeDefined();
 			expect(container.factory(Test, ["dep"])).toEqual(expect.objectContaining({
@@ -157,7 +166,7 @@ describe("di", () => {
 				constructor(public dep: string) {}
 			};
 			expect(container.factory((container) => {
-				container.register("dep", "test");
+				container.register({name: "dep", target: "test"});
 				const param = container.get<string>('dep');
 				return new Test(param);
 			})).toEqual(expect.objectContaining({
@@ -199,7 +208,7 @@ describe("di", () => {
 
 		it("should register a provider function and read from container an existing value", () => {
 			const _symbol = Symbol("Test");
-			container.register("testProp", 45)
+			container.register({name: "testProp", target: 45})
 			container.addProvider(_symbol, (container: IContainer) => {
 				return ({
 					prop: container.get("testProp")

@@ -1,4 +1,4 @@
-import { BindedKey, MetadataScope, defineMetadata, getDefineMetadata, getObjectType, mappedKey } from "../common";
+import { BindedKey, ClassType, MetadataScope, defineMetadata, getDefineMetadata, getObjectType, mappedKey } from "../common";
 
 export interface RouteType {
 	handler: (...args: any[]) => any,
@@ -24,7 +24,7 @@ export interface ControllerOption {
 	version?: string
 };
 
-const mappedControllers = new Map<string, new (...args: any[]) => any>();
+const mappedControllers = new Map<string, ClassType>();
 
 export function controller(): (target: any, _?: ClassDecoratorContext) => void;
 export function controller(name: string | ControllerOption): (target: any, _?: ClassDecoratorContext) => void;

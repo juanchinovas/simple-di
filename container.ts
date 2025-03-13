@@ -6,7 +6,9 @@ import {
 	removeMetadata,
 	MemberMeta,
 	defineMetadata,
-	getAllDefineMetadata } from "./common";
+	getAllDefineMetadata, 
+	ClassType,
+	RegisterType} from "./common";
 import {
 	MetadataScope,
 	IContainer
@@ -21,29 +23,36 @@ class Container implements IContainer {
 		this.#providers = new Map<string | symbol, ((container: IContainer) => void)>();
 	}
 
-	register<IN>(target: (new (...args: any[])=> IN), scope?: MetadataScope): boolean;
-	register(name: string, value: any, scope?: MetadataScope): boolean;
-	register(name: symbol, value: any, scope?: MetadataScope): boolean;
-	register(name: unknown, value: any, scope: MetadataScope = MetadataScope.transient): boolean {
-		if (name && ["string", "symbol"].includes(typeof name)) {
-			this.#instances.set(name as string | symbol, value)
+	register({ target, name, dependencies = [], scope = MetadataScope.transient } : RegisterType): boolean {
+		if (name && ["string", "symbol"].includes(typeof name) && target && dependencies.length === 0) {
+			this.#instances.set(name as string | symbol, target);
 
 			return true;
 		}
 
-		const target = name as (new (...args: any[])=> {});
-		if (!value) {
+		if (target && (target as ClassType).name && Array.isArray(dependencies)) {
+			const _target = target as ClassType;
 			defineMetadata(
-				"class::instanceScope",
+				BindedKey.instanceScope,
 				{
-					key: target.name,
+					key: name ?? _target.name,
 					isClass: true,
 					scope
 				},
-				target
+				_target
+			);
+			defineMetadata(
+				BindedKey.bindedParams,
+				dependencies.map((dep, i) => (
+					{
+						target: (dep as ClassType).name ?? dep,
+						paramIndex: i,
+					}
+				)),
+				_target
 			);
 
-			mappedKey.set(target.name, target);
+			mappedKey.set(name ?? _target.name, _target);
 
 			return true;
 		}
@@ -53,7 +62,7 @@ class Container implements IContainer {
 
 	get<OUT>(target: string): OUT;
 	get<OUT>(target: symbol): OUT;
-	get<IN>(target: IN | (new (...args: any[]) => IN)): IN;
+	get<IN>(target: IN | ClassType<IN>): IN;
 	get(target: unknown) {
 		if (!target) {
 			throw new Error("The key shouldn't be null or undefined");
@@ -74,7 +83,7 @@ class Container implements IContainer {
 
 		// new instance
 		let metadata: Record<string, MemberMeta[] | Metadata> = null;
-		let clazzTarget = target as (new (...args: any[]) => {});
+		let clazzTarget = target as ClassType;
 		if (target && ["string", "symbol"].includes(typeof target)) {
 			clazzTarget = mappedKey.get(target as string | symbol);
 			if (!clazzTarget) {
@@ -83,7 +92,7 @@ class Container implements IContainer {
 
 			metadata = getAllDefineMetadata(clazzTarget)
 		} else {
-			metadata = getAllDefineMetadata(target as (new (...args: any[]) => {}));
+			metadata = getAllDefineMetadata(target as ClassType);
 		}
 
 		const instanceMetadata = metadata[BindedKey.instanceScope] as Metadata;
@@ -99,7 +108,7 @@ class Container implements IContainer {
 
 			const propertiesMetadata = _completeClazzConstructorParams(metadata[BindedKey.bindedProperties] as MemberMeta[] ?? []);
 			propertiesMetadata.forEach(prop => {
-				Reflect.set(targetInstance, prop.key, this.get<unknown>(prop.target));
+				Reflect.set(targetInstance as object, prop.key, this.get<unknown>(prop.target));
 			});
 
 			if (instanceMetadata.scope === MetadataScope.singleton) {
@@ -111,8 +120,8 @@ class Container implements IContainer {
 	}
 
 	factory<IN>(callback: (container: IContainer) => IN): IN;
-	factory<IN>(target: new (...args: any[]) => IN, dependencies?: Array<string>): IN;
-	factory<IN>(target: (new (...args: unknown[]) => IN) | ((container: IContainer) => IN), dependencies?: Array<string>): IN {
+	factory<IN>(target: ClassType<IN>, dependencies?: Array<string>): IN;
+	factory<IN>(target: ClassType<IN> | ((container: IContainer) => IN), dependencies?: Array<string>): IN {
 		if (!target) {
 			throw new Error("The target instance can't be null or undefined");
 		}
@@ -121,11 +130,11 @@ class Container implements IContainer {
 			return <IN>(target as (container: IContainer) => IN)(this);
 		} catch {
 			const dp = dependencies?.map(dependecy => this.get(dependecy)) || [];
-			return new (target as (new (...args: unknown[]) => IN))(...dp);
+			return new (target as ClassType<IN>)(...dp);
 		}
 	}
 
-	addProvider(name: string | symbol, provider: (container: IContainer) => void): void {
+	addProvider(name: string | symbol, provider: (container: IContainer) => unknown): void {
 		this.#providers.set(name, provider);
 	}
 
