@@ -1,4 +1,5 @@
-import { getContainer, IContainer, MetadataScope } from "../index";
+import { provide } from "../container";
+import { getContainer, IContainer, injectable, MetadataScope, inject as propInject } from "../index";
 
 describe("di", () => {
 	let container: IContainer;
@@ -218,6 +219,60 @@ describe("di", () => {
 			expect(container.get(_symbol)).toMatchObject({
 				prop: 45
 			});
+		});
+	});
+
+	describe("provide", () => {
+		it("should inject registered provider function returned value with key as string", () => {
+			container.addProvider("Test", () => {
+				return "Testing provider"
+			});
+
+			expect(provide("Test")).toBe("Testing provider");
+		});
+
+		it("should inject registered provider function returned value with key as symbol", () => {
+			const _symbol = Symbol("Test");
+			container.addProvider(_symbol, () => {
+				return "Testing provider"
+			});
+
+			expect(provide(_symbol)).toBe("Testing provider");
+		});
+
+		it("should inject registered value by key as string", () => {
+			container.register({name: "usefullVal", target: 5});
+
+			expect(provide("usefullVal")).toBe(5);
+		});
+
+		it("should inject registered class instance", () => {
+			class Test {
+				prop: number;
+				constructor() {
+					this.prop = 5;
+				}
+			};
+
+			container.register({target: Test});
+			const instance = provide(Test);
+			
+			expect(instance.prop).toEqual(5);
+		});
+
+		it("should @inject class object as value to class member", () => {
+			class PropValue {}
+	
+			@injectable()
+			class Test {
+				@propInject(PropValue)
+				prop: PropValue;
+			};
+			container.register({target: PropValue});
+	
+			expect(provide(Test)).toEqual(expect.objectContaining({
+				prop: {}
+			}));
 		});
 	});
 

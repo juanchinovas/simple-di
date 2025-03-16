@@ -157,3 +157,7 @@ const container: Container = new Container();
 export function getContainer(): IContainer {
 	return container;
 }
+
+export function provide<T>(instanceName: string | symbol | ClassType<T>): T {
+	return container.get<T>(instanceName as ClassType<T>);
+}

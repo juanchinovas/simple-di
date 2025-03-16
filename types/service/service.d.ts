@@ -14,8 +14,7 @@ export interface ControllerType {
 export interface RouteOption {
     validator?: string;
 }
-export interface ControllerOption {
-    validator?: string;
+export interface ControllerOption extends RouteOption {
     version?: string;
 }
 export declare function controller(): (target: any, _?: ClassDecoratorContext) => void;
@@ -31,4 +30,4 @@ export declare function option(path?: string, options?: RouteOption): (target: a
 export declare function trace(path?: string, options?: RouteOption): (target: any, context: ClassMethodDecoratorContext | string, descriptor?: PropertyDescriptor) => void;
 export declare function connect(path?: string, options?: RouteOption): (target: any, context: ClassMethodDecoratorContext | string, descriptor?: PropertyDescriptor) => void;
 export declare function loadControllers(): ControllerType[];
-export declare function loadController(key: string): ControllerType;
+export declare function loadController(key: string | symbol): ControllerType;

@@ -19,12 +19,9 @@ export interface RouteOption {
 	validator?: string
 };
 
-export interface ControllerOption {
-	validator?: string,
+export interface ControllerOption extends RouteOption {
 	version?: string
 };
-
-const mappedControllers = new Map<string, ClassType>();
 
 export function controller(): (target: any, _?: ClassDecoratorContext) => void;
 export function controller(name: string | ControllerOption): (target: any, _?: ClassDecoratorContext) => void;
@@ -38,7 +35,7 @@ export function controller(name?: string, options?: ControllerOption) {
 			BindedKey.instanceScope,
 			{
 				key,
-				path: isKeyPrimity ? name : "/", 
+				path: isKeyPrimity ? name : "/",
 				isClass: true,
 				options: isKeyPrimity ? options : name,
 				scope: MetadataScope.transient
@@ -46,7 +43,6 @@ export function controller(name?: string, options?: ControllerOption) {
 			target
 		);
 
-		mappedControllers.set(key, target);
 		mappedKey.set(key, target);
 	}
 }
@@ -197,15 +193,15 @@ export function connect(path: string = "/", options?: RouteOption) {
 
 export function loadControllers(): ControllerType[] {
 	const controllersInfo:ControllerType[]  = [];
-	for (const [key] of mappedControllers) {
+	for (const [key] of mappedKey) {
 		controllersInfo.push(loadController(key));
 	}
 
 	return controllersInfo;
 }
 
-export function loadController(key: string): ControllerType {
-	const target = mappedControllers.get(key);
+export function loadController(key: string | symbol): ControllerType {
+	const target = mappedKey.get(key);
 	
 	const metadata = getDefineMetadata(BindedKey.instanceScope, target) as any;
 	let pathMetadata = getDefineMetadata(BindedKey.bindedControllerPath, target) as any;
