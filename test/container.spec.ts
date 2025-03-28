@@ -1,5 +1,4 @@
-import { provide } from "../container";
-import { getContainer, IContainer, injectable, MetadataScope, inject as propInject } from "../index";
+import { getContainer, IContainer, injectable, MetadataScope, inject as propInject, provide } from "../index";
 
 describe("di", () => {
 	let container: IContainer;
